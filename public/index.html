@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eTalk -- Video Call</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- PIN Entry Screen -->
+    <div id="pin-screen" class="screen active">
+      <div class="pin-container">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M15 10l5-5m0 0l-5-5m5 5H3"/>
+            <rect x="2" y="6" width="15" height="12" rx="2"/>
+            <path d="M17 10l4-2v8l-4-2"/>
+          </svg>
+        </div>
+        <h1>eTalk</h1>
+        <p class="subtitle">Enter a 4-digit PIN to start or join a call</p>
+        <div class="pin-input-wrapper">
+          <input type="text" id="pin-input" maxlength="4" placeholder="0000" autocomplete="off" inputmode="numeric">
+        </div>
+        <button id="join-btn" class="btn-primary" disabled>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 10l5-5m0 0l-5-5m5 5H3"/>
+            <rect x="2" y="6" width="15" height="12" rx="2"/>
+            <path d="M17 10l4-2v8l-4-2"/>
+          </svg>
+          Join Call
+        </button>
+        <p id="error-msg" class="error"></p>
+      </div>
+    </div>
+
+    <!-- Preview Screen -->
+    <div id="preview-screen" class="screen">
+      <div class="preview-container">
+        <div class="preview-header">
+          <h2>Camera Preview</h2>
+          <p>Check your camera before joining</p>
+        </div>
+        <div class="preview-video-wrapper">
+          <video id="preview-video" autoplay playsinline muted></video>
+          <div class="recording-indicator hidden" id="recording-dot">
+            <span class="dot"></span>
+            <span class="rec-text">LIVE</span>
+          </div>
+        </div>
+        <div class="preview-controls">
+          <button id="preview-toggle-audio" class="control-btn active" title="Toggle mic">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </button>
+          <button id="preview-toggle-video" class="control-btn active" title="Toggle camera">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="preview-actions">
+          <button id="cancel-preview-btn" class="btn-danger">Cancel</button>
+          <button id="confirm-join-btn" class="btn-primary">Enter Room</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waiting Screen -->
+    <div id="waiting-screen" class="screen">
+      <div class="waiting-container">
+        <div class="spinner"></div>
+        <h2>Waiting for someone to join...</h2>
+        <p class="pin-display">PIN: <span id="waiting-pin"></span></p>
+        <p class="hint">Share this PIN with the person you want to call</p>
+        <button id="cancel-wait-btn" class="btn-danger">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Call Screen -->
+    <div id="call-screen" class="screen">
+      <div class="call-container">
+        <div class="call-timer" id="call-timer">00:00</div>
+        <div class="videos-wrapper">
+          <!-- Remote video -->
+          <div class="video-container remote" id="remote-container">
+            <video id="remote-video" autoplay playsinline></video>
+            <div class="video-label">Remote</div>
+            <div id="remote-muted" class="muted-indicator hidden">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                <path d="M3.27 2L2 3.27 6.73 8H5v2h2.73l1.82 2H5v2h6.73l4 4L17 14.73 3.27 2z"/>
+              </svg>
+            </div>
+            <div id="remote-screen-share-indicator" class="screen-share-indicator hidden">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2H0c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2h-4zM4 5h16v11H4V5z"/>
+              </svg>
+              Sharing Screen
+            </div>
+            <div id="connection-quality" class="connection-quality hidden">HD</div>
+          </div>
+          <!-- Local video -->
+          <div class="video-container local" id="local-container">
+            <video id="local-video" autoplay playsinline muted></video>
+            <div class="video-label">You</div>
+            <div class="recording-indicator-small hidden" id="local-rec-dot">
+              <span class="dot"></span>
+            </div>
+          </div>
+        </div>
+        <div class="call-controls">
+          <button id="toggle-audio-btn" class="control-btn active" title="Mute/unmute">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </button>
+          <button id="toggle-video-btn" class="control-btn active" title="Camera on/off">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+            </svg>
+          </button>
+          <button id="screen-share-btn" class="control-btn" title="Share screen">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2H0c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2h-4zM4 5h16v11H4V5z"/>
+            </svg>
+          </button>
+          <button id="end-call-btn" class="control-btn hangup" title="End call">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
+            </svg>
+          </button>
+        </div>
+        <div id="connection-status" class="connection-status">Connecting...</div>
+      </div>
+    </div>
+
+    <!-- Reconnect Screen -->
+    <div id="reconnect-screen" class="screen">
+      <div class="reconnect-container">
+        <div class="spinner"></div>
+        <h2>Connection lost</h2>
+        <p class="hint">Your call was interrupted</p>
+        <button id="reconnect-btn" class="btn-primary">Reconnect</button>
+        <button id="reconnect-cancel-btn" class="btn-danger" style="margin-top:0.75rem">Leave</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
